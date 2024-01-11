@@ -150,16 +150,20 @@ class MFRC522:
             
         GPIO.setup(pin_rst, GPIO.OUT)
         GPIO.output(pin_rst, 1)
+        self.logger.debug(f"Set RST pin to 1 (pin {pin_rst})")
         self.MFRC522_Init()
 
     def MFRC522_Reset(self):
+        self.logger.info("Resetting MFRC522")
         self.Write_MFRC522(self.CommandReg, self.PCD_RESETPHASE)
 
     def Write_MFRC522(self, addr, val):
+        self.logger.debug(f"Write_MFRC522(), addr: {addr} val: {val}")
         val = self.spi.xfer2([(addr << 1) & 0x7E, val])
 
     def Read_MFRC522(self, addr):
         val = self.spi.xfer2([((addr << 1) & 0x7E) | 0x80, 0])
+        self.logger.debug(f"Read_MFRC522() from addr {addr}: {val}")
         return val[1]
 
     def Close_MFRC522(self):
@@ -353,6 +357,8 @@ class MFRC522:
         if not (self.Read_MFRC522(self.Status2Reg) & 0x08) != 0:
             self.logger.error("AUTH ERROR(status2reg & 0x08) != 0")
 
+        logger.debug(f"MFRC522_Auth(): status {status}")
+
         # Return the status
         return status
 
@@ -413,6 +419,7 @@ class MFRC522:
                 self.logger.error("Authentication error")
 
     def MFRC522_Init(self):
+        self.logger.info("Initializing MFRC522")
         self.MFRC522_Reset()
 
         self.Write_MFRC522(self.TModeReg, 0x8D)
@@ -423,3 +430,4 @@ class MFRC522:
         self.Write_MFRC522(self.TxAutoReg, 0x40)
         self.Write_MFRC522(self.ModeReg, 0x3D)
         self.AntennaOn()
+        self.logger.debug("MFRC522 initialized, antenna on")
